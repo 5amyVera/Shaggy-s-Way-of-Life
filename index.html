@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+	<meta charset="UTF-8">
+	<link rel="icon" href="img/favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script src="js/main.js"></script>
+</head>
+<body>
+	
+	<div class="container">
+		<form id="form" action="#">
+			<input type="text" id="input" value="Shaggy's way of life" maxlength="20" required>
+			<button class="button" onclick="checkInput(document.getElementById('input').value, 'ABCDEFGHIJKLMNOPQRSTUVWXYZaäâàbcdeéèêëfghiïîjklmnoôpqrstuùvwxyz0123456789!?,;.: \'')">Start</button>
+		</form>
+		<p id="text"></p>
+	</div>
+</body>
+</html>
