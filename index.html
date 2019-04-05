@@ -1,20 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Test</title>
+	<title>Shaggy's way of life</title>
 	<meta charset="UTF-8">
 	<link rel="icon" href="img/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<script src="js/main.js"></script>
 </head>
 <body>
-	
-	<div class="container">
-		<form id="form" action="#">
-			<input type="text" id="input" value="Shaggy's way of life" maxlength="20" required>
-			<button class="button" onclick="checkInput(document.getElementById('input').value, 'ABCDEFGHIJKLMNOPQRSTUVWXYZaäâàbcdeéèêëfghiïîjklmnoôpqrstuùvwxyz0123456789!?,;.: \'')">Start</button>
-		</form>
-		<p id="text"></p>
+	<div class="nav">
+		<button onclick="window.location.reload();">Refresh</button>
+		<button onclick="document.getElementById('informations').style.display = 'flex';">Informations</button>
 	</div>
+	<div class="container">
+		<div class="left">
+			<img src="img/iwai.png">
+			<input type="text" id="input" value="Shaggy's way of life" maxlength="20">
+		</div>
+		<div class="right">
+			<button onclick="start();">Start</button>
+		</div>
+		<p id="text">Please enter above the string that will be used as genetic code.</p>
+
+		<table id="table">
+			<tbody>
+				<tr><td class="gene">Top 5 Genes</td><td class="fitness">Fitness</td></tr>
+				<tr><td class="gene" id="gene0"></td><td class="fitness" id="fitness0"></td></tr>
+				<tr><td class="gene" id="gene1"></td><td class="fitness" id="fitness1"></td></tr>
+				<tr><td class="gene" id="gene2"></td><td class="fitness" id="fitness2"></td></tr>
+				<tr><td class="gene" id="gene3"></td><td class="fitness" id="fitness3"></td></tr>
+				<tr><td class="gene" id="gene4"></td><td class="fitness" id="fitness4"></td></tr>
+			</tbody>
+		</table>
+		<p class="footer">Samy Vera, 2019</p>
+	</div>
+	<p id="informations" onclick="document.getElementById('informations').style.display = 'none';">
+		Informations<br>
+		"Shaggy's way of life" is an algorithm that uses evolutionary concepts.
+	</p>
 </body>
 </html>

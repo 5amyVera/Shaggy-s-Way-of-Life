@@ -1,162 +1,122 @@
-class Result {
-	constructor (string, fitness) {
-		this.string = string;
-		this.fitness = fitness;
+var possibleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',.!? ";
+var defaultSize = 100;
+var input = "";
+
+class Individual {
+	constructor(gene) {
+		this.gene = gene;
+		this.fitness = 0;
 	}
 }
 
-var firstGeneration = (amount, length, possible) => {
-	var generation = [];
-	for (let i = 0; i < amount; i++) {
-		var result = new Result("", 0);
-		for (let j = 0; j < length; j++) {
-    		result.string += possible.charAt(Math.floor(Math.random() * possible.length));
-  		}
-  		generation.push(result);
-	}
-	return generation;
-}
+class Population {
+	constructor(size) {
+		this.size = size;
+		this.generation = 0;
 
-var fitness = (input, generation) => {
-	generation.forEach(result => {
-		result.fitness = 0;
-		for (let i = 0; i < result.string.length; i++) {
-			if (result.string.charAt(i) === input.charAt(i)) {
-				result.fitness++;
+		this.generatePopulation = size => {
+			var population = [];
+			for (let i = 0; i < size; i++) {
+				var gene = "";
+				for (let j = 0; j < input.length; j++) gene += possibleChars.charAt(Math.floor(Math.random() * possibleChars.length));
+				population.push(new Individual(gene));
+			}
+			return population;
+		}
+		this.people = this.generatePopulation(this.size);
+
+		this.chooseParent = () => {
+			var possibleParents = [];
+			this.people.forEach(individual => {
+				for (let i = 0; i < individual.fitness; i++) possibleParents.push(individual.gene);
+			});
+			if (possibleParents.length < this.size) {
+				for (let i = possibleParents.length; i < this.size; i++) possibleParents.push(this.people[i].gene);
+			}
+			return possibleParents[Math.floor(Math.random() * possibleParents.length)];
+		}
+
+		this.crossover = () => {
+			var newPopulation = [];
+			for (let i = 0; i < this.size; i++) {
+				var parent1 = this.chooseParent();
+				var parent2 = this.chooseParent();
+				newPopulation.push(new Individual(parent1.substr(0, input.length / 2).concat(parent2.substr(input.length / 2, input.length / 2 + 1))));
+			}
+			newPopulation.forEach(newIndividual => this.people.push(newIndividual));
+		}
+
+		this.mutation = () => {
+			if (Math.floor(Math.random() * 10 + 1) < 5) {
+				this.people.forEach(individual => {
+					individual.gene = individual.gene.replace(individual.gene.charAt(Math.floor(Math.random() * individual.gene.length)), possibleChars.charAt(Math.floor(Math.random() * possibleChars.length)));
+				});
 			}
 		}
-	});
-}
 
-var sortGeneration = generation => {
-	var totalFitness = 0;
-	generation.forEach(result => {
-		totalFitness += result.fitness;
-	})
-	generation.sort((a,b) => {
-		if (a.fitness < b.fitness) {
-			return 1;
+		this.calculFitness = () => {
+			this.people.forEach(individual => {
+				individual.fitness = 0;
+				for (let i = 0; i < individual.gene.length; i++)
+					if (individual.gene.charAt(i) === input.charAt(i)) individual.fitness++;
+			});
 		}
-		if (a.fitness > b.fitness) {
-			return -1;
+
+		this.sort = () => {
+			this.people.sort((a, b) => {
+				if (a.fitness < b.fitness) return 1;
+				if (a.fitness > b.fitness) return -1;
+				return 0;
+			});
 		}
-		return 0;
-	});
-}
 
-var parent = (generation, length) => {
-	var possibleParents = [];
-	generation.forEach( result => {
-		for (let i = 0; i < result.fitness; i++) {
-			possibleParents.push(result.string);
-		}
-	});
-	if (possibleParents.length < generation.length) {
-		for (let i = possibleParents.length; i < generation.length; i++) {
-			possibleParents.push(generation[i].string);
-		}
-	}
-	return possibleParents[Math.floor(Math.random()*possibleParents.length)];
-}
+		this.select = () => this.people.splice(this.people.length / 2, this.people.length / 2);
 
-var selection = generation => {
-	generation.splice(generation.length/2, generation.length/2);
-}
-
-var crossover = (generation, length) => {
-	var newGeneration = [];
-	for (let i = 0; i < generation.length; i++) {
-		var parent1 = parent(generation, length);
-		var parent2 = parent(generation, length);
-		newGeneration.push(new Result(parent1.substr(0, length/2).concat(parent2.substr(length/2, length/2 + 1)), 0));
-	}
-	newGeneration.forEach(result => { generation.push(result); });
-}
-
-var mutation = (generation, possible) => {
-	var randomNum = Math.floor(Math.random()*10 + 1);
-	if (randomNum < 3) {
-		var randomChar = possible.charAt(Math.floor(Math.random() * possible.length));
-		generation.forEach(result => {
-			var random = Math.floor(Math.random()*result.string.length);
-			result.string = result.string.replace(result.string.charAt(random), randomChar);
-		});
-	}
-}
-
-var display = (input, generation) => {
-	var progress = "· ";
-	for (let i = 0; i < 20; i++) {
-		if (i < Math.round((generation[0].fitness*20)/input.length)) {
-			progress += "█";
-		}
-		else {
-			progress += "&nbsp";
-		}
-	}
-	progress += " ·";
-	var DOMdisplay = generation[0].string + "<br><br>" + progress + " " + Math.round((generation[0].fitness*100)/input.length) + "%";
-	document.getElementById("text").innerHTML = DOMdisplay;
-}
-
-var runGeneration = frameFunc => {
- 	var lastTime = null;
- 	var frame = time => {
-	   	var stop = false;
-	   	if (lastTime != null) {
-	   		var timeStep = Math.min(time - lastTime, 100) / 1000;
-	   		stop = frameFunc(timeStep) === false;
-	   	}
-	   	lastTime = time;
-	   	if (!stop) {
-	   		requestAnimationFrame(frame);
-	   	}
-	}
-	requestAnimationFrame(frame);
-}
-
-var run = (input, generation, possible, check) => {
-	runGeneration ( step => {
-		fitness(input, generation);
-		sortGeneration(generation);
-		selection(generation);
-		crossover(generation, input.length);
-		mutation(generation, possible);
-		fitness(input, generation);
-		display(input, generation);
-		if(check) {
-			check(input === generation[0].string);
-		}
-		return false;
-	});
-}
-
-var main = (input, possible) => {
-	var generation = firstGeneration(1000, input.length, possible);
-	var start = () => {
-		run(input, generation, possible, result => {
-			if (result === false) {
-				start();
+		this.display = () => {
+			var progress = "";
+			for (let i = 0; i < 20; i++) {
+				if (i < Math.round((this.people[0].fitness * 20) / input.length)) progress += "|";
+				else progress += "·";
 			}
-		})
+			document.getElementById("text").innerHTML = progress + "<br><br>Generation : " + this.generation + "<br>Population : " + this.size;
+
+			this.people.forEach((individual, i) => {
+				if (i < 5) {
+					document.getElementById("gene" + i).innerHTML = individual.gene;
+					document.getElementById("fitness" + i).innerHTML = individual.fitness;
+				}
+			});
+		}
+
+		this.evolve = () => {
+			this.generation++;
+			this.crossover();
+			this.mutation();
+			this.calculFitness();
+			this.sort();
+			this.select();
+
+			this.display();
+		}
 	}
-	start();
 }
 
-var checkInput = (input, possible) => {
+var isValid = input => {
 	var buffer = 0;
-	for (var i = 0; i < input.length; i++) {
-		for (let j = 0; j < possible.length; j++) {
-			if (input.charAt(i) === possible.charAt(j)) {
-				buffer++;
-			}
+	[...input].forEach(inputChar => [...possibleChars].forEach(possibleChar => buffer = inputChar === possibleChar ? buffer += 1 : buffer));
+	return buffer === input.length;
+}
+
+var start = () => {
+	input = document.getElementById('input').value;
+	document.getElementById("input").style.background = "#fff";
+	document.getElementById("table").style.display = 'flex';
+	if (input.length > 0 && isValid(input)) {
+		population = new Population(defaultSize);
+		var step = () => {
+			population.evolve();
+			if (!(population.people[0].gene === input)) requestAnimationFrame(step);
 		}
-	}
-	if (buffer === input.length) {
-		main(input, possible);
-	}
-	else {
-		var DOMdisplay = "Error : Some characters are not recognized";
-		document.getElementById("text").innerHTML = DOMdisplay;
-	}
+		requestAnimationFrame(step);
+	} else document.getElementById("input").style.background = "#f00";
 }
